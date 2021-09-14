@@ -3,9 +3,9 @@ name: Build
 on: [push]
 
 env:
-  QT_VERSION: "5.15.2"
-  QT_CREATOR_VERSION: "4.13.3"
-  XCODE_VERSION: "12.1.1"
+  QT_VERSION: "5.9.9"
+  QT_CREATOR_VERSION: "4.10.2"
+  XCODE_VERSION: "6.4"
   INSTALL_BUILDER_VERSION: "20.4.0"
   PRODUCT_PRO: "Sync-my-L2P.pro"
   PRODUCT_NAME: "SyncMyL2P"
@@ -20,23 +20,23 @@ jobs:
     strategy:
       matrix:
         config:
-        - {
-            name: "Windows x64",
-            artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-windows-x64.exe",
-            os: windows-2019,
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          }
-        - {
-            name: "Windows x86",
-            artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-windows-x86.exe",
-            os: windows-2019,
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars32.bat"
-          }
-        - {
-            name: "Linux",
-            artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-linux.AppImage",
-            os: ubuntu-18.04
-          }
+        # - {
+        #     name: "Windows x64",
+        #     artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-windows-x64.exe",
+        #     os: windows-2019,
+        #     environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        #   }
+        # - {
+        #     name: "Windows x86",
+        #     artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-windows-x86.exe",
+        #     os: windows-2019,
+        #     environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars32.bat"
+        #   }
+        # - {
+        #     name: "Linux",
+        #     artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-linux.AppImage",
+        #     os: ubuntu-18.04
+        #   }
         - {
             name: "macOS",
             artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-osx.dmg",
