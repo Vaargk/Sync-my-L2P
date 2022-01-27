@@ -5,7 +5,6 @@
 #include "options.h"
 
 #include <QThread>
-#include <QTextCodec>
 
 #include <QStandardPaths>
 #include <QEventLoop>
