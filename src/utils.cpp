@@ -3,10 +3,13 @@
 #include <QClipboard>
 #include <QMessageBox>
 #include <QFileInfo>
+#include <QLinkedList>
 #include <QScreen>
+#include <QOperatingSystemVersion>
 
 #include "utils.h"
 #include "urls.h"
+
 
 #include "qslog/QsLog.h"
 
@@ -41,9 +44,9 @@ QString Utils::getElementLocalPath(Structureelement *item, QString downloadDirec
         while ((parent = (Structureelement*) parent->parent()) != 0)
         {
             auto element_text = parent->text();
-            if(element_text.length() > 75)
+            if(element_text.length() > 75 && !Utils::longPathsSupported())
                 element_text = element_text.left(75).trimmed();
-            while (QSysInfo::productType() == "windows" && element_text.endsWith(".")) {
+            while (element_text.endsWith(".")) {
                 element_text.chop(1);
             }
             path.push_front(element_text % "/");
@@ -55,7 +58,7 @@ QString Utils::getElementLocalPath(Structureelement *item, QString downloadDirec
         // Fileprefix hinzufügen
         if(includePrefix)
         {
-            path.push_front("file:///");
+            path = QUrl::fromLocalFile(path).toString();
         }
 
         // Dateiname
@@ -72,8 +75,6 @@ QString Utils::getElementRemotePath(Structureelement *item)
 
     QString remoteUrl;
     auto typeEX = item->data(typeEXRole);
-    auto systemEX = item->data(systemEXRole);
-
     if(typeEX == courseItem)
     {
         remoteUrl = item->data(urlRole).toString();
@@ -82,18 +83,13 @@ QString Utils::getElementRemotePath(Structureelement *item)
     {
         return "";
     }
-    else if (systemEX == l2p)
+    else if (typeEX == fileItem)
     {
-        remoteUrl = item->data(urlRole).toString();
-        // Ersten drei Zeichen entfernen, da der URL ein "|" vorangestellt ist + ein Zeichen /
-        remoteUrl.remove(0,4);
-        remoteUrl.prepend(l2pApiUrl);
-    }
-    else
-    {
-        // shows the file over the api.
-        QString downloadurl = item->data(urlRole).toUrl().toDisplayString(QUrl::FullyDecoded);
-        remoteUrl = moodleMainUrl + downloadurl;
+        QString filename = item->text();
+        QString downloadurl = item->data(urlRole).toString();
+        //QString downloadurl = item->data(urlRole).toUrl().toDisplayString(QUrl::FullyDecoded);
+        remoteUrl = moodleDownloadFileUrl % "/" % filename % "?downloadurl=" % downloadurl;
+
     }
     return remoteUrl;
 }
@@ -178,53 +174,6 @@ Structureelement *Utils::getDirectoryItem(Structureelement *courseItem, QStringL
         // Remove unnessescary whit
         item = item.simplified();
 
-        // Bei Verwendung der deutschen Sprache die Ordner umbennen
-        if(QLocale::system().language() == QLocale::German)
-        {
-            if (item.contains("SharedDocuments")) {
-                item = "Gemeinsame-Dokumente";
-            }
-            else if (item.contains("StructuredMaterials")) {
-                item = "Lernmaterialien";
-            }
-            else if (item.contains("LA_AssignmentDocuments")) {
-                item = "Übungsdokumente";
-            }
-            else if (item.contains("LA_SolutionDocuments")) {
-                item = "Übungslösungen";
-            }
-            else if (item.contains("LA_CorrectionDocuments")) {
-                item = "Übungskorrektur";
-            }
-            else if (item.contains("LA_SampleSolutions")) {
-                item = "Übungsmusterlösung";
-            }
-            else if (item.contains("EmailAttachments")) {
-                item = "E-Mails";
-            }
-            else if (item.contains("MediaLibrary")) {
-                item = "Medienbibliothek";
-            }
-            else if (item.contains("AnnouncementDocuments")) {
-                item = "Ankündigungen";
-            }
-            else if (item.contains("Announcement"))
-            {
-                item = "Ankündigungen";
-            }
-        }
-
-        // Bei anderen Sprachen werden Anhänge zu den Nachrichten gepackt.
-        if(QLocale::system().language() != QLocale::German)
-        {
-            if (item.contains("AnnouncementDocuments")) {
-                item = "Announcement";
-            }
-            else if (item.contains("EmailAttachments")) {
-                item = "E-Mails";
-            }
-        }
-
         bool correctChildFound = false;
         for(int row=0; row < currentItem->rowCount(); ++row)
         {
@@ -271,8 +220,8 @@ void Utils::checkAllFilesIfSynchronised(QList<Structureelement*> items, QString 
         QFileInfo fileInfo(filePath);
 
         if(fileInfo.exists() && fileInfo.isFile() &&
-                fileInfo.size() == item->data(sizeRole).toInt()/* &&
-                fileInfo.lastModified() == item->data(dateRole).toDateTime()*/)
+                fileInfo.size() == item->data(sizeRole).toInt() &&
+                fileInfo.lastModified() >= item->data(dateRole).toDateTime())
             {
                 item->setData(SYNCHRONISED, synchronisedRole);
             }
@@ -282,4 +231,12 @@ void Utils::checkAllFilesIfSynchronised(QList<Structureelement*> items, QString 
             }
 
     }
+}
+
+/// check whether the OS supports long paths
+bool Utils::longPathsSupported()
+{
+    const auto osVersion = QOperatingSystemVersion::current();
+    return osVersion.type() != QOperatingSystemVersion::Windows
+        || osVersion >= QOperatingSystemVersion(QOperatingSystemVersion::Windows, 10, 0, 1607);
 }

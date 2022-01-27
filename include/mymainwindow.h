@@ -39,9 +39,10 @@ public:
 
 private slots:
     void trayClickedSlot(QSystemTrayIcon::ActivationReason);
-    void on_langCB_currentIndexChanged(const QString &lang);
+    void on_langCB_currentIndexChanged(const int &lang);
     void showStatusMessage(QString msg);
     void retranslate();
+    void closeTask();
 
 private:
     void init();

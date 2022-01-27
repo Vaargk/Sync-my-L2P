@@ -13,6 +13,7 @@ icon.res
 compile_commands.json
 moc_predefs.h
 .qmake.stash
+<<<<<<< HEAD
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
@@ -27,9 +28,11 @@ Sync-my-L2P_resource.rc.tmp
 gui/info.ui
 osx/Info.plist
 windows/SyncMyL2P.xml
+include/version.h
 
 // Automated builds
 qt6
+qt5
 qtcreator
 cmake
 ninja.exe

@@ -1,6 +1,30 @@
-QT     += core gui network xml
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT     += core gui network widgets xml
 CONFIG += c++11
+
+VERSION = "2.5.1"
+VERSION_CODE = "20501"
+
+TEMPLATE_FILES = include/version.h.template \
+            gui/info.ui.template \
+            windows/SyncMyL2P.xml.template
+
+template_compiler.input = TEMPLATE_FILES
+template_compiler.output  = ${QMAKE_FILE_IN_PATH}/${QMAKE_FILE_IN_BASE}
+template_compiler.depends = ${QMAKE_FILE_IN} Sync-my-L2P.pro
+win32 {
+    template_compiler.commands = powershell -Command \"(Get-Content -Encoding utf8 \\\"${QMAKE_FILE_IN}\\\").Replace(\\\"__PRODUCT_VERSION_CODE\\\",\\\"$$VERSION_CODE\\\").Replace(\\\"__PRODUCT_VERSION\\\",\\\"$$VERSION\\\") | Set-Content -Encoding utf8 -Path ${QMAKE_FILE_OUT}\"
+}
+unix {
+    template_compiler.commands = sed 's/__PRODUCT_VERSION_CODE/$$VERSION_CODE/g' ${QMAKE_FILE_IN} | sed 's/__PRODUCT_VERSION/$$VERSION/g' > ${QMAKE_FILE_OUT}
+}
+template_compiler.CONFIG = target_predeps no_link
+QMAKE_EXTRA_COMPILERS += template_compiler
+
+macx {
+    plistupdate.commands = /usr/libexec/PlistBuddy -c \"Add :CFBundleVersion string $$VERSION\" -c \"Add :CFBundleShortVersionString string $$VERSION\" -c \"Add :CFBundleName string Sync-my-L2P\" -c \"Set :CFBundleIdentifier de.rwth-aachen.Sync-my-L2P\" bin/Sync-my-L2P.app/Contents/Info.plist
+    QMAKE_EXTRA_TARGETS += plistupdate
+    PRE_TARGETDEPS += plistupdate
+}
 
 TARGET = Sync-my-L2P
 TEMPLATE = app
@@ -16,7 +40,6 @@ SOURCES += \
     src/logger.cpp \
     src/login.cpp \
     src/logindialog.cpp \
-    src/message.cpp \
     src/mymainwindow.cpp \
     src/mysortfilterproxymodel.cpp \
     src/options.cpp \
@@ -36,14 +59,14 @@ HEADERS  += \
     include/logger.h \
     include/login.h \
     include/logindialog.h \
-    include/message.h \
     include/mymainwindow.h \
     include/mysortfilterproxymodel.h \
     include/options.h \
     include/parser.h \
     include/structureelement.h \
     include/urls.h \
-    include/utils.h
+    include/utils.h \
+    include/version.h
 
 FORMS += \
     gui/autoclosedialog.ui \

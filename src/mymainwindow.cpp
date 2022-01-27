@@ -24,6 +24,7 @@
 #include "qslog/QsLog.h"
 #include "utils.h"
 #include "version.h"
+#include "urls.h"
 
 
 MyMainWindow::MyMainWindow(QWidget *parent):
@@ -87,6 +88,11 @@ void MyMainWindow::closeEvent(QCloseEvent * event)
     event->accept();
 }
 
+void MyMainWindow::closeTask()
+{
+    saveSettings();
+}
+
 /// Laden der gespeicherten Einstellungen aller Tabs
 void MyMainWindow::loadSettings()
 {
@@ -138,8 +144,10 @@ void MyMainWindow::checkForUpdate()
 {
     int currentVersion = PRODUCT_VERSION_CODE;
 
+    QUrl updateUrl = appUpdateUrl;
     QNetworkAccessManager manager;
-    QNetworkRequest request(QUrl("https://www.syncmyl2p.de/version.txt"));
+    QNetworkRequest request(updateUrl);
+    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     QEventLoop newLoop;
     QNetworkReply *reply = manager.get(request);
     reply->ignoreSslErrors();
@@ -158,22 +166,28 @@ void MyMainWindow::checkForUpdate()
         return;
     }
     QString replyMessage(reply->readAll());
+    replyMessage = replyMessage.trimmed();
     QLOG_DEBUG() << tr("Aktuelle Version laut Server:") << replyMessage;
     if( replyMessage.toInt() > currentVersion )
     {
         // Aufhübschen der Versionsnummer
-        replyMessage.insert(4, ".");
-        replyMessage.insert(2, ".");
+        QRegularExpression re("^(\\d{1,2})(\\d{2})(\\d{2})$");
+        QRegularExpressionMatch match = re.match(replyMessage);
+        if (match.hasMatch()) {
+            replyMessage = QString::number(match.captured(1).toInt()) + "."
+                         + QString::number(match.captured(2).toInt()) + "."
+                         + QString::number(match.captured(3).toInt());
+        }
 
         // Anzeige für den Benutzer
         auto button = QMessageBox::question(this,
                                             tr("Neue Version verfügbar!") + " (v" + replyMessage +")",
                                             tr("Auf der offiziellen Webseite ist eine neue Version verfügbar!\n"
                                                "Diese Nachricht kannst du in den Optionen deaktivieren.\n"
-                                               "Jetzt https://www.syncmyl2p.de/ aufrufen?"));
+                                               "Jetzt %1 aufrufen?").arg(releaseUrl));
         if (button == QMessageBox::Yes)
         {
-            QDesktopServices::openUrl(QUrl("https://www.syncmyl2p.de/"));
+            QDesktopServices::openUrl(QUrl(releaseUrl));
         }
     }
     else
@@ -230,24 +244,24 @@ void MyMainWindow::trayClickedSlot(QSystemTrayIcon::ActivationReason reason)
 
 // Installiert die neue Übersetzung, wenn eine andere Sprache gewählt wurde
 // Falls neue Sprachen ergänzt werden sollen, müssen diese hier und in der options.cpp ergänzt werden.
-void MyMainWindow::on_langCB_currentIndexChanged(const QString &lang){
+void MyMainWindow::on_langCB_currentIndexChanged(const int &lang){
     QLOG_INFO() << tr("wechsle Sprache auf ") << lang;
 
     qApp->removeTranslator(&m_translator);
-    if (lang == tr("Systemsprache"))
+    if (lang == ETOI(Options::language::sys))
     {
         if(!m_translator.load("sync-my-l2p_" + QLocale::system().name(), ":/lang"))
         {
             m_translator.load("sync-my-l2p_en", ":/lang");
         }
     }
-    else if (lang == "Deutsch")
+    else if (lang == ETOI(Options::language::de))
         m_translator.load("sync-my-l2p_de", ":/lang");
-    else if (lang == "English")
+    else if (lang == ETOI(Options::language::en))
        m_translator.load("sync-my-l2p_en", ":/lang");
-    else if (lang == "Lëtzebuergesch")
+    else if (lang == ETOI(Options::language::lb))
         m_translator.load("sync-my-l2p_lb", ":/lang");
-    else if (lang == "Shqip")
+    else if (lang == ETOI(Options::language::sq))
         m_translator.load("sync-my-l2p_sq", ":/lang");
     else
         m_translator.load("sync-my-l2p_en", ":/lang");

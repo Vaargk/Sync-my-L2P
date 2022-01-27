@@ -9,8 +9,11 @@
 #include <QFile>
 
 #include "login.h"
-class Browser;
 
+// macro for converting enum to int
+#define ETOI(e) (static_cast<int>(e))
+
+class Browser;
 
 namespace Ui {
 class Options;
@@ -26,14 +29,13 @@ public:
     void loadSettings();
     void saveSettings();
 
+    // Setting enums
+    enum class language {sys=0,de,en,lb,sq};
+    enum class longPaths {ask=0,download,skip};
+    enum class overrideFiles {ask=0,override,skip};
+
     // Getter
     bool isUserDataSaveCheckBoxChecked();
-    bool isLearningMaterialsCheckBoxChecked();
-    bool isSharedLearningmaterialsCheckBoxChecked();
-    bool isAssignmentsCheckBoxChecked();
-    bool isMediaLibrarysCheckBoxChecked();
-    bool isEmailAttachmentsCheckBoxChecked();
-    bool isAnnouncementAttachmentsCheckBoxChecked();
     bool isAutoLoginOnStartCheckBoxChecked();
     bool isAutoSyncOnStartCheckBoxChecked();
     bool isMinimizeInTrayCheckBoxChecked();
@@ -43,14 +45,14 @@ public:
     bool isCheckForUpdateCheckBoxChecked();
     bool isCurrentSemesterCheckBoxChecked();
     bool isTutorDomainCheckBoxChecked();
+    longPaths getLongPathsSetting();
+    overrideFiles getOverrideFilesSetting();
 
     QString getAccessToken() const;
 
     int getLoginCounter();
 
     QString downloadFolderLineEditText();
-    QString userNameLineEditText();
-    QString userPasswordLineEditText();
 
     void init(Browser *browser);
 

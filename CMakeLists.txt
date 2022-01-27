@@ -31,7 +31,6 @@ qt_internal_add_executable(Sync-my-L2P
         gui/info.ui
         gui/logger.ui
         gui/logindialog.ui
-        gui/message.ui
         gui/mymainwindow.ui
         gui/options.ui
         include/autoclosedialog.h
@@ -43,7 +42,6 @@ qt_internal_add_executable(Sync-my-L2P
         include/logger.h
         include/login.h
         include/logindialog.h
-        include/message.h
         include/mymainwindow.h
         include/mysortfilterproxymodel.h
         include/options.h
@@ -67,7 +65,6 @@ qt_internal_add_executable(Sync-my-L2P
         src/login.cpp
         src/logindialog.cpp
         src/main.cpp
-        src/message.cpp
         src/mymainwindow.cpp
         src/mysortfilterproxymodel.cpp
         src/options.cpp
