@@ -30,12 +30,6 @@ jobs:
             environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
         - {
-            name: "Windows x86",
-            artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-windows-x86.exe",
-            os: windows-2019,
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars32.bat"
-          }
-        - {
             name: "Linux",
             artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-linux.AppImage",
             os: ubuntu-20.04
@@ -143,13 +137,8 @@ jobs:
         string(REPLACE "." "" qt_version_dotless "${qt_version}")
         if ("${{ runner.os }}" STREQUAL "Windows")
           set(url_os "windows_x86")
-          if ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
-            set(qt_package_name "qt.$ENV{QT_RELEASE}.${qt_version_dotless}.win64_msvc2019_64")
-            set(qt_dir_prefix "${qt_version}/msvc2019_64")
-          elseif ("${{ matrix.config.environment_script }}" MATCHES "vcvars32.bat")
-            set(qt_package_name "qt.$ENV{QT_RELEASE}.${qt_version_dotless}.win32_msvc2019")
-            set(qt_dir_prefix "${qt_version}/msvc2019")
-          endif()
+          set(qt_package_name "qt.$ENV{QT_RELEASE}.${qt_version_dotless}.win64_msvc2019_64")
+          set(qt_dir_prefix "${qt_version}/msvc2019_64")
         elseif ("${{ runner.os }}" STREQUAL "Linux")
           set(url_os "linux_x64")
           set(qt_package_name "qt.$ENV{QT_RELEASE}.${qt_version_dotless}.gcc_64")
@@ -169,11 +158,6 @@ jobs:
         set(package_version ${CMAKE_MATCH_1})
         set(package_suffix ${CMAKE_MATCH_2})
         string(REPLACE "-debug-symbols" "" package_suffix "${package_suffix}")
-
-        # Workaround for CMake's greedy regex
-        if ("${{ matrix.config.environment_script }}" MATCHES "vcvars32.bat")
-          string(REPLACE "X86_64" "X86" package_suffix "${package_suffix}")
-        endif()
 
         file(MAKE_DIRECTORY "$ENV{QT_RELEASE}")
 
@@ -217,14 +201,8 @@ jobs:
       if: runner.os == 'Windows'
       shell: cmake -P {0}
       run: |
-        if ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
-          set(qt_package_name "qt.tools.openssl.win_x64")
-          set(qt_package_folder "tools_openssl_x64")
-        elseif ("${{ matrix.config.environment_script }}" MATCHES "vcvars32.bat")
-          set(qt_package_name "qt.tools.openssl.win_x86")
-          set(qt_package_folder "tools_openssl_x86")
-        endif()
-
+        set(qt_package_name "qt.tools.openssl.win_x64")
+        set(qt_package_folder "tools_openssl_x64")
         set(qt_base_url "https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/${qt_package_folder}")
         file(DOWNLOAD "${qt_base_url}/Updates.xml" ./Updates.xml SHOW_PROGRESS)
 
@@ -234,11 +212,6 @@ jobs:
         set(package_version ${CMAKE_MATCH_1})
         set(package_name ${CMAKE_MATCH_2})
         string(REPLACE "-debug-symbols" "" package_name "${package_name}")
-
-        # Workaround for CMake's greedy regex
-        if ("${{ matrix.config.environment_script }}" MATCHES "vcvars32.bat")
-          string(REPLACE "X86_64" "X86" package_name "${package_name}")
-        endif()
 
         file(DOWNLOAD
           "${qt_base_url}/${qt_package_name}/${package_version}${package_name}.7z" ./openssl.7z
@@ -263,11 +236,7 @@ jobs:
 
         if ("${{ runner.os }}" STREQUAL "Windows")
           set(qtc_output_directory "bin")
-          if ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
-            set(qtc_platform "windows_x64")
-          elseif ("${{ matrix.config.environment_script }}" MATCHES "vcvars32.bat")
-            set(qtc_platform "windows_x86")
-          endif()
+          set(qtc_platform "windows_x64")
         elseif ("${{ runner.os }}" STREQUAL "Linux")
           set(qtc_output_directory "bin")
           set(qtc_platform "linux_x64")
@@ -448,10 +417,7 @@ jobs:
             message(FATAL_ERROR "Bad exit status")
           endif()
 
-          if ("${{ matrix.config.environment_script }}" MATCHES "vcvars64.bat")
-            set(installer_platform "windows-x64")
-          elseif ("${{ matrix.config.environment_script }}" MATCHES "vcvars32.bat")
-            set(installer_platform "windows")
+          set(installer_platform "windows-x64")
           endif()
 
           execute_process(
@@ -602,11 +568,6 @@ jobs:
         - {
             name: "Windows x64",
             artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-windows-x64.exe",
-            os: ubuntu-latest
-          }
-        - {
-            name: "Windows x86",
-            artifact: "$ENV{PRODUCT_NAME}-PRODUCT_VERSION-windows-x86.exe",
             os: ubuntu-latest
           }
         - {
