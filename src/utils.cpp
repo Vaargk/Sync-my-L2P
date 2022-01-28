@@ -3,7 +3,6 @@
 #include <QClipboard>
 #include <QMessageBox>
 #include <QFileInfo>
-#include <QLinkedList>
 #include <QScreen>
 #include <QOperatingSystemVersion>
 
