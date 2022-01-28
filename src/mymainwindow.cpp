@@ -147,7 +147,6 @@ void MyMainWindow::checkForUpdate()
     QUrl updateUrl = appUpdateUrl;
     QNetworkAccessManager manager;
     QNetworkRequest request(updateUrl);
-    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
     QEventLoop newLoop;
     QNetworkReply *reply = manager.get(request);
     reply->ignoreSslErrors();
