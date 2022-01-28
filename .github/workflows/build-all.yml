@@ -4,7 +4,7 @@ on: [push]
 
 env:
   QT_RELEASE: "qt6"
-  QT_VERSION: "6.1.0"
+  QT_VERSION: "6.2.0"
   QT_CREATOR_VERSION: "6.0.2"
   CMAKE_VERSION: 3.19.8
   NINJA_VERSION: 1.10.1
