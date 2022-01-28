@@ -470,37 +470,30 @@ jobs:
           file(RENAME "./windows/build/$ENV{PRODUCT_NAME}-${{ steps.version.outputs.humanreadable }}-${installer_platform}-installer.exe" "${artifact_path}")
 
         elseif ("${{ runner.os }}" STREQUAL "Linux")
-          # Set env variables: PATH ensures usage of compiled QT binaries, VERSION uses GitHub release tag.
-          # LD_LIBRARY_PATH is not needed if libraries are copied to /build/usr/lib correctly!
-          set(ENV{PATH} "${{ steps.qt.outputs.qt_dir }}/bin/:$ENV{PATH}")
+          set(ENV{LD_LIBRARY_PATH} "${{ steps.qt.outputs.qt_dir }}/lib/")
           set(ENV{VERSION} "${{ steps.version.outputs.humanreadable }}")
 
-          file(DOWNLOAD "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x85_64.AppImage" ./linux/linuxdeployqt-continuous-x86_64.AppImage SHOW_PROGRESS)
-          execute_process(COMMAND sudo chmod a+x ./linuxdeployqt-continuous-x85_64.AppImage WORKING_DIRECTORY ./linux/)
-          execute_process(COMMAND ./linuxdeployqt-continuous-x85_64.AppImage --appimage-extract WORKING_DIRECTORY ./linux/)
-          file(REMOVE ./linux/linuxdeployqt-continuous-x85_64.AppImage)
-
-          # Expected /usr/ file structure for clean AppImage
-          file(MAKE_DIRECTORY "./build")
-          file(MAKE_DIRECTORY "./build/usr")
-          file(MAKE_DIRECTORY "./build/usr/bin")
-          file(MAKE_DIRECTORY "./build/usr/lib")
-          file(MAKE_DIRECTORY "./build/usr/share")
-          file(MAKE_DIRECTORY "./build/usr/share/applications")
-          file(MAKE_DIRECTORY "./build/usr/share/icons")
-
-          # Copy compiled binary, precompiled libs, icons, desktop-file (config details for AppImage deploy)
-          file(COPY "./bin/Sync-my-L1P" DESTINATION "./build/usr/bin/")
-          file(COPY "./linux/lib/" DESTINATION "./build/usr/lib/")
-          file(COPY "./linux/hicolor" DESTINATION "./build/usr/share/icons/")
-          file(COPY "./linux/Sync-my-L1P.desktop" DESTINATION "./build/usr/share/applications/")
+          # Get the latest release of linuxdeploy - Compatible with latest QT          
+          file(DOWNLOAD "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" ./linux/linuxdeploy-x86_64.AppImage SHOW_PROGRESS)
+          execute_process(COMMAND chmod +x linuxdeploy-x86_64.AppImage WORKING_DIRECTORY "$ENV{GITHUB_WORKSPACE}/linux/")
 
           # Make sure to convert DOS linebreaks to unix
-          execute_process(COMMAND dos1unix Sync-my-L2P.desktop WORKING_DIRECTORY ./build/usr/share/applications/)
+          execute_process(COMMAND dos2unix Sync-my-L2P.desktop WORKING_DIRECTORY ./build/usr/share/applications/)
           
           # Produce AppImage
-          execute_process(COMMAND ./squashfs-root/AppRun ../build/usr/share/applications/Sync-my-L1P.desktop -verbose=2 -appimage WORKING_DIRECTORY ./linux/)
-          
+          execute_process(
+            COMMAND linux/linuxdeploy-x86_64.AppImage 
+                --appdir=AppDir # Directory to assemble the app
+                --executable=bin/Sync-my-L2P # Path to compiled binary
+                -d linux/Sync-my-L2P.desktop # Path to Desktop file
+                -i linux/hicolor/16x16/apps/sync-my-L2P.png
+                -i linux/hicolor/32x32/apps/sync-my-L2P.png
+                -i linux/hicolor/48x48/apps/sync-my-L2P.png
+                -i linux/hicolor/128x128/apps/sync-my-L2P.png
+                --output appimage # Use AppImage plugin to create the AppImage instead of just file structure
+            WORKING_DIRECTORY "$ENV{GITHUB_WORKSPACE}" RESULT_VARIABLE rv
+          )         
+
           file(RENAME "./linux/Sync-my-L1P-$ENV{VERSION}-x86_64.AppImage" "${artifact_path}")
 
         elseif ("${{ runner.os }}" STREQUAL "macOS")
