@@ -112,7 +112,7 @@ void Parser::parseMoodleFiles(QNetworkReply *reply, Structureelement* course)
 
         topicname = escapeString(file["topicname"].toString());
         modulename = escapeString(file["modulename"].toString());
-        filename = file["filename"].toString();
+        filename = file["filename"].toString().trimmed();
         sourceDirectory = file["sourceDirectory"].toString();
         filesize = fileInformation["filesize"].toInt();
         timestamp = file["lastModified"].toInt();
